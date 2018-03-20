@@ -2,6 +2,8 @@ const express = require('express');
 const Twit = require('twit');
 const app = express();
 
+console.log('The port is ' + process.env.PORT)
+
 app.set('port', (process.env.PORT || 8000));
 app.use(express.static(__dirname + '/public'));
 app.set('views', __dirname + '/views');
