@@ -1,13 +1,14 @@
 {
-  "name": "node-js-sample",
+  "name": "sosh-mede",
   "version": "0.2.0",
-  "description": "A sample Node.js app using Express 4",
+  "description": "A social media aggregator",
   "main": "index.js",
   "scripts": {
     "start": "node index.js"
   },
   "dependencies": {
-    "express": "^4.13.3"
+    "express": "^4.13.3",
+    "twit": "^2.2.9"
   },
   "engines": {
     "node": "4.0.0"
@@ -21,9 +22,6 @@
     "heroku",
     "express"
   ],
-  "author": "Mark Pundsack",
-  "contributors": [
-    "Zeke Sikelianos <zeke@sikelianos.com> (http://zeke.sikelianos.com)"
-  ],
-  "license": "MIT"
+  "author": "Cory Swainston",
+  "license": "ISC"
 }
