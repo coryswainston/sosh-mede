@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Feed | The Sosh Mede</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css?family=Montserrat|Roboto" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet">
+  </head>
+  <body>
+    <header>
+      <h1>The Sosh Mede</h1>
+      <i class="material-icons">search</i>
+    </header>
+    <main>
+      <div id="make-post">
+        <form action="" method="post">
+          <input class="post-text" type="text" name="post-text" placeholder="Share something..." autocomplete="off">
+          <button class="material-icons submit-button" type="submit" name="make-post">
+            send
+          </button>
+        </form>
+      </div>
+      <% posts.forEach(function(post) { %>
+      <div class="post">
+        <a href="<%= post.url %>" target="_blank">
+          <div class="post-wrapper">
+            <div class="profile-pic">
+              <img src="<%= post.userPic %>" alt="">
+            </div>
+            <div class="post-content">
+              <div class="post-user">
+                <strong><%= post.userName %></strong>
+                <span class="light">@<%= post.userHandle %></span>
+                <img src="<%= post.icon %>" alt="">
+              </div>
+              <p>
+                <%= post.text %>
+              </p>
+              <% if (post.video) { %>
+                <video class="post-video" poster="<%= post.photo %>" controls loop>
+                  <% post.video.forEach((variant) => { %>
+                  <source src="<%= variant.url %>" type="<%= variant.content_type %>">
+                  <% }); %>
+                  Your browser does not support the <code>video</code> element.
+                </video>
+              <% } else if (post.photo) { %>
+              <img class="post-image" src="<%= post.photo %>" alt="">
+              <% } %>
+              <% if (post.sharedPost) { %>
+                <div class="post">
+                  <a href="<%= post.sharedPost.url %>" target="_blank">
+                    <div class="post-wrapper">
+                      <div class="profile-pic">
+                        <img src="<%= post.sharedPost.userPic %>" alt="">
+                      </div>
+                      <div class="post-content">
+                        <div class="post-user">
+                          <strong><%= post.sharedPost.userName %></strong>
+                          <span class="light">@<%= post.sharedPost.userHandle %></span>
+                        </div>
+                        <p>
+                          <%= post.sharedPost.text %>
+                        </p>
+                      </div>
+                    </div>
+                  </a>
+                </div>
+                <% } %>
+              <br /><small><%= post.date %></small>
+            </div>
+          </div>
+        </a>
+      </div>
+      <% }); %>
+    </main>
+    <footer>
+      <small>Site by <a href="http://coryswainston.com">Cory Swainston</a></small>
+    </footer>
+  </body>
+</html>
