@@ -90,6 +90,13 @@ main {
   font-size: 12pt;
 }
 
+.search-form {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  width: 50%;
+}
+
 #make-post {
   padding: 40px 20px;
   background: white;

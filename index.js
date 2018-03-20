@@ -2,16 +2,35 @@ const express = require('express');
 const Twit = require('twit');
 const app = express();
 
-console.log('The port is ' + process.env.PORT)
-
 app.set('port', (process.env.PORT || 8000));
 app.use(express.static(__dirname + '/public'));
+app.use(express.urlencoded({extended:true}));
+app.use(express.json());
 app.set('views', __dirname + '/views');
 app.set('view engine', 'ejs');
 
 app.get('/', getPosts);
+app.get('/search/:term', searchPosts);
+app.post('/post', makePost);
 
-app.listen(app.get('port'), () => console.log('Listening on 8000'));
+app.listen(app.get('port'), () => console.log('Listening on ' + app.get('port')));
+
+function makePost(req, res) {
+  var T = new Twit({
+    consumer_key:         process.env.CONSUMER_KEY,
+    consumer_secret:      process.env.CONSUMER_SECRET,
+    access_token:         process.env.ACCESS_TOKEN,
+    access_token_secret:  process.env.ACCESS_TOKEN_SECRET
+  });
+
+  T.post('statuses/update', { status: req.body.postText }, (err, data, response) => {
+    var id = data.id_str;
+    var url = 'https://twitter.com/cs313test/status/' + id;
+
+    res.json({postUrl: url});
+    // res.redirect(300, '/');
+  });
+}
 
 function getPosts(req, res) {
   var T = new Twit({
@@ -28,64 +47,31 @@ function getPosts(req, res) {
       posts.push(post);
     });
 
-    //
-    // var posts = [
-    //   {
-    //     text: "This is sample text. Hello there everybody. I'm just tweetin and what not",
-    //     userName: "Cory Swainston",
-    //     userHandle: "coryswainston",
-    //     userPic: "http://pbs.twimg.com/profile_images/969660571103588352/EFkrhVuP_normal.jpg",
-    //     date: "Thu Mar 08 2018",
-    //     url: "https://twitter.com/utahjazz/status/971885845111164928",
-    //     icon: "images/twitter-icon.png"
-    //   },
-    //   {
-    //     text: "This is sample text. Hello there everybody. I'm just tweetin and what not",
-    //     userName: "Cory Swainston",
-    //     userHandle: "coryswainston",
-    //     userPic: "http://pbs.twimg.com/profile_images/969660571103588352/EFkrhVuP_normal.jpg",
-    //     date: "Thu Mar 08 2018",
-    //     url: "https://twitter.com/utahjazz/status/971885845111164928",
-    //     icon: "images/twitter-icon.png"
-    //   },
-    //   {
-    //     text: "This is sample text. Hello there everybody. I'm just tweetin and what not",
-    //     userName: "Cory Swainston",
-    //     userHandle: "coryswainston",
-    //     userPic: "http://pbs.twimg.com/profile_images/969660571103588352/EFkrhVuP_normal.jpg",
-    //     date: "Thu Mar 08 2018",
-    //     url: "https://twitter.com/utahjazz/status/971885845111164928",
-    //     icon: "images/twitter-icon.png"
-    //   },
-    //   {
-    //     text: "This is sample text. Hello there everybody. I'm just tweetin and what not",
-    //     userName: "Cory Swainston",
-    //     userHandle: "coryswainston",
-    //     userPic: "http://pbs.twimg.com/profile_images/969660571103588352/EFkrhVuP_normal.jpg",
-    //     date: "Thu Mar 08 2018",
-    //     url: "https://twitter.com/utahjazz/status/971885845111164928",
-    //     icon: "images/twitter-icon.png"
-    //   },
-    //   {
-    //     text: "This is sample text. Hello there everybody. I'm just tweetin and what not",
-    //     userName: "Cory Swainston",
-    //     userHandle: "coryswainston",
-    //     userPic: "http://pbs.twimg.com/profile_images/969660571103588352/EFkrhVuP_normal.jpg",
-    //     date: "Thu Mar 08 2018",
-    //     url: "https://twitter.com/utahjazz/status/971885845111164928",
-    //     icon: "images/twitter-icon.png"
-    //   },
-    //   {
-    //     text: "This is sample text. Hello there everybody. I'm just tweetin and what not",
-    //     userName: "Cory Swainston",
-    //     userHandle: "coryswainston",
-    //     userPic: "http://pbs.twimg.com/profile_images/969660571103588352/EFkrhVuP_normal.jpg",
-    //     date: "Thu Mar 08 2018",
-    //     url: "https://twitter.com/utahjazz/status/971885845111164928",
-    //     icon: "images/twitter-icon.png"
-    //   }
-    // ]
-    res.render('pages/feed', {posts: posts});
+    res.json(posts);
+    // res.render('pages/feed', {posts: posts});
+  });
+}
+
+function searchPosts(req, res) {
+  var T = new Twit({
+    consumer_key:         process.env.CONSUMER_KEY,
+    consumer_secret:      process.env.CONSUMER_SECRET,
+    access_token:         process.env.ACCESS_TOKEN,
+    access_token_secret:  process.env.ACCESS_TOKEN_SECRET
+  });
+
+  var searchQuery = req.params.term; // req.query.term;
+
+  T.get('search/tweets', {count: 30, tweet_mode: 'extended', q: searchQuery}, (err, data, response) => {
+    var posts = new Array();
+    data = data.statuses;
+    data.forEach((tweet) => {
+      var post = assembleTweet(tweet);
+      posts.push(post);
+    });
+
+    res.json(posts);
+    // res.render('pages/feed', {posts: posts});
   });
 }
 
