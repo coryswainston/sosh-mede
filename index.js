@@ -1,19 +1,17 @@
 const express = require('express');
-const Twit = require('twit');
 const app = express();
+const Twit = require('twit');
 
-app.set('port', (process.env.PORT || 8000));
-app.use(express.static(__dirname + '/public'));
-app.use(express.urlencoded({extended:true}));
-app.use(express.json());
-app.set('views', __dirname + '/views');
-app.set('view engine', 'ejs');
-
-app.get('/', getPosts);
-app.get('/search/:term', searchPosts);
-app.post('/post', makePost);
-
-app.listen(app.get('port'), () => console.log('Listening on ' + app.get('port')));
+app.set('port', (process.env.PORT || 8000))
+  .use(express.static(__dirname + '/public'))
+  .use(express.urlencoded({extended:true}))
+  .use(express.json())
+  .set('views', __dirname + '/views')
+  .set('view engine', 'ejs')
+  .get('/', getPosts)
+  .get('/search', searchPosts)
+  .post('/post', makePost)
+  .listen(app.get('port'), () => console.log('Listening on ' + app.get('port')));
 
 function makePost(req, res) {
   var T = new Twit({
@@ -27,8 +25,8 @@ function makePost(req, res) {
     var id = data.id_str;
     var url = 'https://twitter.com/cs313test/status/' + id;
 
-    res.json({postUrl: url});
-    // res.redirect(300, '/');
+    // res.json({postUrl: url});
+    res.redirect(302, '/');
   });
 }
 
@@ -47,8 +45,8 @@ function getPosts(req, res) {
       posts.push(post);
     });
 
-    res.json(posts);
-    // res.render('pages/feed', {posts: posts});
+    // res.json(posts);
+    res.render('pages/feed', {posts: posts});
   });
 }
 
@@ -60,9 +58,9 @@ function searchPosts(req, res) {
     access_token_secret:  process.env.ACCESS_TOKEN_SECRET
   });
 
-  var searchQuery = req.params.term; // req.query.term;
+  var searchQuery = req.query.term; // req.params.term;
 
-  T.get('search/tweets', {count: 30, tweet_mode: 'extended', q: searchQuery}, (err, data, response) => {
+  T.get('search/tweets', {count: 30, tweet_mode: 'extended', q: searchQuery, lang: 'en'}, (err, data, response) => {
     var posts = new Array();
     data = data.statuses;
     data.forEach((tweet) => {
@@ -70,8 +68,8 @@ function searchPosts(req, res) {
       posts.push(post);
     });
 
-    res.json(posts);
-    // res.render('pages/feed', {posts: posts});
+    // res.json(posts);
+    res.render('pages/feed', {posts: posts});
   });
 }
 
