@@ -46,7 +46,7 @@ function getPosts(req, res) {
     });
 
     // res.json(posts);
-    res.render('pages/feed', {posts: posts});
+    res.render('pages/feed', {posts: posts, term: null});
   });
 }
 
@@ -69,7 +69,7 @@ function searchPosts(req, res) {
     });
 
     // res.json(posts);
-    res.render('pages/feed', {posts: posts});
+    res.render('pages/feed', {posts: posts, term: searchQuery});
   });
 }
 
