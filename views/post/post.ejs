@@ -1,0 +1,33 @@
+<div class="post">
+  <a href="<%= post.url %>" target="_blank">
+    <div class="post-wrapper">
+      <div class="profile-pic">
+        <img src="<%= post.userPic %>" alt="">
+      </div>
+      <div class="post-content">
+        <div class="post-user">
+          <strong><%= post.userName %></strong>
+          <span class="light">@<%= post.userHandle %></span>
+          <img src="<%= post.icon %>" alt="">
+        </div>
+        <p>
+          <%= post.text %>
+        </p>
+        <% if (post.video) { %>
+          <video class="post-video" poster="<%= post.photo %>" loop>
+            <% post.video.forEach((variant) => { %>
+            <source src="<%= variant.url %>" type="<%= variant.content_type %>">
+            <% }); %>
+            Your browser does not support the <code>video</code> element.
+          </video>
+        <% } else if (post.photo) { %>
+        <img class="post-image" src="<%= post.photo %>" alt="">
+        <% } %>
+        <% if (post.sharedPost) { %>
+          <%- include('./post', {post: post.sharedPost}); %>
+        <% } %>
+        <br /><small><%= post.date %></small>
+      </div>
+    </div>
+  </a>
+</div>
