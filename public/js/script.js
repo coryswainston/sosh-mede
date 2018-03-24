@@ -25,6 +25,30 @@ window.onload = function() {
     var term = searchInput.value;
     searchPosts(mainFeed, term);
   }
+
+  var postForm = document.getElementById('post-form');
+  postForm.onsubmit = function(event) {
+    event.preventDefault();
+    var postInput = document.getElementById('post-input');
+    var postText = postInput.value;
+    makePost(postForm, postText);
+  }
+}
+
+function makePost(div, postText) {
+  var request = new XMLHttpRequest();
+  request.onload = function() {
+    var response = JSON.parse(request.responseText);
+    if (response.success == true) {
+      var successLink = '<a href="' + response.postUrl + '">Successfully posted!</a>';
+      div.innerHTML += successLink;
+    } else {
+      // do nothing yet
+    }
+  }
+  request.open('POST', '/post', true);
+  request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
+  request.send('postText=' + postText);
 }
 
 function loadPosts(div) {

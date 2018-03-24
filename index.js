@@ -26,8 +26,7 @@ function makePost(req, res) {
     var id = data.id_str;
     var url = 'https://twitter.com/cs313test/status/' + id;
 
-    // res.json({postUrl: url});
-    res.redirect(302, '/');
+    res.json({success: err == null, postUrl: url});
   });
 }
 
