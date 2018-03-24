@@ -2,17 +2,12 @@
 <main>
   <div id="make-post">
     <form action="/post" method="post">
-      <input class="post-text" type="text" name="postText" placeholder="Share something..." autocomplete="off">
+      <input id="post-input" type="text" name="postText" placeholder="Share something..." autocomplete="off">
       <button class="material-icons submit-button" type="submit">
         send
       </button>
     </form>
   </div>
-  <% if (term) { %>
-  <div id="search-term">
-    <p>Showing results for "<%= term %>"</p>
-  </div>
-  <% } %>
   <div id="main-feed">
 
   </div>

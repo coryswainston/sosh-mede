@@ -17,6 +17,14 @@ window.onload = function() {
       loadPosts(mainFeed);
     }
   };
+
+  var searchForm = document.getElementById('search-form');
+  searchForm.onsubmit = function(event) {
+    event.preventDefault();
+    var searchInput = document.getElementById('search-input');
+    var term = searchInput.value;
+    searchPosts(mainFeed, term);
+  }
 }
 
 function loadPosts(div) {
@@ -27,6 +35,17 @@ function loadPosts(div) {
     }
   };
   request.open('GET', '/posts');
+  request.send();
+}
+
+function searchPosts(div, term) {
+  var request = new XMLHttpRequest();
+  request.onload = function() {
+    if (request.status === 200) {
+      div.innerHTML = request.responseText;
+    }
+  };
+  request.open('GET', '/search?term=' + term);
   request.send();
 }
 

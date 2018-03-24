@@ -1,3 +1,8 @@
+<% if (term) { %>
+<div id="search-term">
+  <p>Showing results for "<%= term %>"</p>
+</div>
+<% } %>
 <% posts.forEach(function(post) { %>
   <%- include('../post/post', {post: post}); %>
 <% }); %>

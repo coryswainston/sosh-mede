@@ -32,23 +32,7 @@ function makePost(req, res) {
 }
 
 function getFeed(req, res) {
-  // var T = new Twit({
-  //   consumer_key:         process.env.CONSUMER_KEY,
-  //   consumer_secret:      process.env.CONSUMER_SECRET,
-  //   access_token:         process.env.ACCESS_TOKEN,
-  //   access_token_secret:  process.env.ACCESS_TOKEN_SECRET
-  // });
-  //
-  // T.get('statuses/home_timeline', {count: 30, tweet_mode: 'extended'}, (err, data, response) => {
-  //   var posts = new Array();
-  //   data.forEach((tweet) => {
-  //     var post = assembleTweet(tweet);
-  //     posts.push(post);
-  //   });
-  //
-    // res.json(posts);
     res.render('pages/feed', {term: null});
-  // });
 }
 
 function searchPosts(req, res) {
@@ -69,8 +53,7 @@ function searchPosts(req, res) {
       posts.push(post);
     });
 
-    res.json(posts);
-    // res.render('pages/feed', {term: searchQuery});
+    res.render('post/posts', {term: searchQuery, posts: posts});
   });
 }
 
@@ -89,8 +72,7 @@ function getPosts(req, res) {
       posts.push(post);
     });
 
-    // res.json(posts);
-    res.render('post/posts', {posts: posts});
+    res.render('post/posts', {term: null, posts: posts});
   });
 }
 
