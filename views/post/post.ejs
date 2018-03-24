@@ -11,7 +11,7 @@
           <img src="<%= post.icon %>" alt="">
         </div>
         <p>
-          <%= post.text %>
+          <%- post.text %>
         </p>
         <% if (post.video) { %>
           <video class="post-video" poster="<%= post.photo %>" loop>

@@ -96,8 +96,14 @@ function getPosts(req, res) {
 
 function assembleTweet(tweet) {
 
+  var text = tweet.full_text;
+  var idx = text.search('http');
+  if (idx != -1) {
+    text = [text.slice(0, idx), '<a class="post-link" href="', text.slice(idx), '">', text.slice(idx), '</a>'].join('');
+  }
+
   var post = {
-    text: tweet.full_text,
+    text: text,
     userName: tweet.user.name,
     userHandle: tweet.user.screen_name,
     userPic: tweet.user.profile_image_url.replace('_normal', '_400x400'),

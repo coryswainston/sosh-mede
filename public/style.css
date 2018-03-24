@@ -121,6 +121,10 @@ main {
   border: 1px solid var(--blue);
 }
 
+.post-link {
+  color: var(--blue);
+}
+
 .submit-button {
 
 }
