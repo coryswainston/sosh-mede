@@ -8,8 +8,9 @@ app.set('port', (process.env.PORT || 8000))
   .use(express.json())
   .set('views', __dirname + '/views')
   .set('view engine', 'ejs')
-  .get('/', getPosts)
+  .get('/', getFeed)
   .get('/search', searchPosts)
+  .get('/posts', getPosts)
   .post('/post', makePost)
   .listen(app.get('port'), () => console.log('Listening on ' + app.get('port')));
 
@@ -30,24 +31,24 @@ function makePost(req, res) {
   });
 }
 
-function getPosts(req, res) {
-  var T = new Twit({
-    consumer_key:         process.env.CONSUMER_KEY,
-    consumer_secret:      process.env.CONSUMER_SECRET,
-    access_token:         process.env.ACCESS_TOKEN,
-    access_token_secret:  process.env.ACCESS_TOKEN_SECRET
-  });
-
-  T.get('statuses/home_timeline', {count: 30, tweet_mode: 'extended'}, (err, data, response) => {
-    var posts = new Array();
-    data.forEach((tweet) => {
-      var post = assembleTweet(tweet);
-      posts.push(post);
-    });
-
+function getFeed(req, res) {
+  // var T = new Twit({
+  //   consumer_key:         process.env.CONSUMER_KEY,
+  //   consumer_secret:      process.env.CONSUMER_SECRET,
+  //   access_token:         process.env.ACCESS_TOKEN,
+  //   access_token_secret:  process.env.ACCESS_TOKEN_SECRET
+  // });
+  //
+  // T.get('statuses/home_timeline', {count: 30, tweet_mode: 'extended'}, (err, data, response) => {
+  //   var posts = new Array();
+  //   data.forEach((tweet) => {
+  //     var post = assembleTweet(tweet);
+  //     posts.push(post);
+  //   });
+  //
     // res.json(posts);
-    res.render('pages/feed', {posts: posts, term: null});
-  });
+    res.render('pages/feed', {term: null});
+  // });
 }
 
 function searchPosts(req, res) {
@@ -60,7 +61,7 @@ function searchPosts(req, res) {
 
   var searchQuery = req.query.term; // req.params.term;
 
-  T.get('search/tweets', {count: 30, tweet_mode: 'extended', q: searchQuery, lang: 'en'}, (err, data, response) => {
+  T.get('search/tweets', {count: 10, tweet_mode: 'extended', q: searchQuery, lang: 'en'}, (err, data, response) => {
     var posts = new Array();
     data = data.statuses;
     data.forEach((tweet) => {
@@ -68,8 +69,28 @@ function searchPosts(req, res) {
       posts.push(post);
     });
 
+    res.json(posts);
+    // res.render('pages/feed', {term: searchQuery});
+  });
+}
+
+function getPosts(req, res) {
+  var T = new Twit({
+    consumer_key:         process.env.CONSUMER_KEY,
+    consumer_secret:      process.env.CONSUMER_SECRET,
+    access_token:         process.env.ACCESS_TOKEN,
+    access_token_secret:  process.env.ACCESS_TOKEN_SECRET
+  });
+
+  T.get('statuses/home_timeline', {count: 10, tweet_mode: 'extended'}, (err, data, response) => {
+    var posts = new Array();
+    data.forEach((tweet) => {
+      var post = assembleTweet(tweet);
+      posts.push(post);
+    });
+
     // res.json(posts);
-    res.render('pages/feed', {posts: posts, term: searchQuery});
+    res.render('post/posts', {posts: posts});
   });
 }
 

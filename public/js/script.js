@@ -9,6 +9,25 @@ window.onload = function() {
       toggleVideoPlaying(video, event);
     });
   }
+
+  var mainFeed = document.getElementById('main-feed');
+  loadPosts(mainFeed);
+  window.onscroll = function() {
+    if ((window.innerHeight + window.pageYOffset) >= document.body.offsetHeight) {
+      loadPosts(mainFeed);
+    }
+  };
+}
+
+function loadPosts(div) {
+  var request = new XMLHttpRequest();
+  request.onload = function() {
+    if (request.status === 200) {
+      div.innerHTML += request.responseText;
+    }
+  };
+  request.open('GET', '/posts');
+  request.send();
 }
 
 function toggleVideoPlaying(video, event) {
