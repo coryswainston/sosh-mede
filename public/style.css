@@ -145,6 +145,18 @@ main {
 }
 */
 
+#post-load {
+  text-align: center;
+  width: 100%;
+}
+
+#post-load img {
+  max-width: 400px;
+  min-width: 200px;
+  position: relative;
+  top: -80px;
+}
+
 .post {
   box-sizing: border-box;
   padding: 10px;

@@ -52,13 +52,15 @@ function makePost(div, postText) {
 }
 
 function loadPosts(div) {
+  var loadingGif = document.getElementById('post-load');
   var request = new XMLHttpRequest();
   request.onload = function() {
+    loadingGif.style.display = 'none';
     if (request.status === 200) {
       div.innerHTML += request.responseText;
     }
   };
-  request.open('GET', '/posts');
+  request.open('GET', '/posts', true);
   request.send();
 }
 
@@ -69,7 +71,7 @@ function searchPosts(div, term) {
       div.innerHTML = request.responseText;
     }
   };
-  request.open('GET', '/search?term=' + term);
+  request.open('GET', '/search?term=' + term, true);
   request.send();
 }
 

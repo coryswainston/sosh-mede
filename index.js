@@ -10,7 +10,7 @@ app.set('port', (process.env.PORT || 8000))
   .set('view engine', 'ejs')
   .get('/', getFeed)
   .get('/search', searchPosts)
-  .get('/posts', getPosts)
+  .get('/posts', renderPosts)
   .post('/post', makePost)
   .listen(app.get('port'), () => console.log('Listening on ' + app.get('port')));
 
@@ -47,16 +47,16 @@ function searchPosts(req, res) {
   T.get('search/tweets', {count: 10, tweet_mode: 'extended', q: searchQuery, lang: 'en'}, (err, data, response) => {
     var posts = new Array();
     data = data.statuses;
-    data.forEach((tweet) => {
-      var post = assembleTweet(tweet);
+    for (var i = 0; i < data.length; i++) {
+      var post = assembleTweet(i, data[i]);
       posts.push(post);
-    });
+    }
 
     res.render('post/posts', {term: searchQuery, posts: posts});
   });
 }
 
-function getPosts(req, res) {
+function getTweets(callback) {
   var T = new Twit({
     consumer_key:         process.env.CONSUMER_KEY,
     consumer_secret:      process.env.CONSUMER_SECRET,
@@ -64,18 +64,79 @@ function getPosts(req, res) {
     access_token_secret:  process.env.ACCESS_TOKEN_SECRET
   });
 
-  T.get('statuses/home_timeline', {count: 10, tweet_mode: 'extended'}, (err, data, response) => {
+  T.get('statuses/home_timeline', {count: 100, tweet_mode: 'extended'}, (err, data, response) => {
     var posts = new Array();
-    data.forEach((tweet) => {
-      var post = assembleTweet(tweet);
+    for (var i = 0; i < data.length; i++) {
+      var post = assembleTweet(i, data[i]);
       posts.push(post);
-    });
-
-    res.render('post/posts', {term: null, posts: posts});
+    }
+    console.log(posts);
+    savePosts(posts, callback);
   });
 }
 
-function assembleTweet(tweet) {
+function savePosts(posts, callback) {
+  getMongoClient((err, cli) => {
+    if (err) {
+      return console.error(err);
+    }
+    var db = cli.db('sosh-mede');
+
+    db.collection('posts').remove({});
+    db.collection('posts').insert(posts, (err, res) => {
+      db.collection('meta').remove({});
+      db.collection('meta').insert({postIdx: 0, lastCall: new Date()}, (err, res) => {
+        cli.close();
+        callback();
+      });
+    });
+  });
+}
+
+function retrievePosts(idx, callback) {
+  getMongoClient((err, cli) => {
+    if (err) {
+      console.error(err);
+    }
+    var db = cli.db('sosh-mede');
+    var posts = new Array();
+    db.collection('posts').find({'id': {$gte:idx}}).limit(10).toArray((err, posts) => {
+      if (err) {
+        console.error(err);
+      }
+
+      cli.close();
+
+      callback(posts);
+    });
+  });
+}
+
+function renderPosts(req, res) {
+  getMongoClient((err, cli) => {
+    var db = cli.db('sosh-mede');
+    db.collection('meta').findOne({}, (err, result) => {
+      if(new Date().getTime() - Date.parse(result.lastCall) > 120000) { // 2 minutes in millis
+        console.log('Making an API call');
+        getTweets(() => {
+          retrievePosts(0, (posts) => {
+            res.render('post/posts', {term: null, posts: posts});
+          })
+        });
+      } else {
+        console.log('Avoiding an API call');
+        var postIdx = result.postIdx + 10;
+        db.collection('meta').remove({});
+        db.collection('meta').insert({postIdx: postIdx, lastCall: result.lastCall});
+        retrievePosts(postIdx, (posts) => {
+          res.render('post/posts', {term: null, posts: posts});
+        });
+      }
+    });
+  });
+}
+
+function assembleTweet(id, tweet) {
 
   var text = tweet.full_text;
   var idx = text.search('http');
@@ -84,6 +145,7 @@ function assembleTweet(tweet) {
   }
 
   var post = {
+    id: id,
     text: text,
     userName: tweet.user.name,
     userHandle: tweet.user.screen_name,
@@ -91,7 +153,7 @@ function assembleTweet(tweet) {
     date: formatTime(tweet.created_at),
     url: 'https://twitter.com/' + tweet.user.screen_name + '/status/' + tweet.id_str,
     icon: 'images/twitter-icon.png',
-    sharedPost: tweet.quoted_status ? assembleTweet(tweet.quoted_status) : null,
+    sharedPost: tweet.quoted_status ? assembleTweet(null, tweet.quoted_status) : null,
     photo: getPhoto(tweet),
     video: getVideo(tweet)
   }
@@ -150,4 +212,11 @@ function getDifference(now, then, unit) {
     unit += 's';
   }
   return diff + ' ' + unit + ' ago';
+}
+
+function getMongoClient(callback) {
+  var MongoClient = require('mongodb').MongoClient;
+
+  var uri = 'mongodb+srv://swainstoncory89:' + process.env.MONGO_PASS + '@sosh-mede-u9ng4.mongodb.net/sosh-mede';
+  MongoClient.connect(uri, callback);
 }
