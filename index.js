@@ -82,12 +82,12 @@ function savePosts(posts, callback) {
     }
     var db = cli.db('sosh-mede');
 
-    db.collection('posts').remove({});
-    db.collection('posts').insert(posts, (err, res) => {
-      db.collection('meta').remove({});
-      db.collection('meta').insert({postIdx: 0, lastCall: new Date()}, (err, res) => {
-        cli.close();
-        callback();
+    db.collection('posts').drop((err, res) => {
+      db.collection('posts').insert(posts, (err, res) => {
+        db.collection('meta').updateOne({}, {$set: {postIdx: 0, lastCall: new Date()}}, true, (err, res) => {
+          cli.close();
+          callback();
+        });
       });
     });
   });
@@ -116,6 +116,13 @@ function renderPosts(req, res) {
   getMongoClient((err, cli) => {
     var db = cli.db('sosh-mede');
     db.collection('meta').findOne({}, (err, result) => {
+      if (err) {
+        console.error(err);
+      }
+      if (result == null) {
+        console.log('result was null');
+        result = {lastCall: new Date(), postIdx: 0};
+      }
       if(new Date().getTime() - Date.parse(result.lastCall) > 120000) { // 2 minutes in millis
         console.log('Making an API call');
         getTweets(() => {
@@ -126,10 +133,13 @@ function renderPosts(req, res) {
       } else {
         console.log('Avoiding an API call');
         var postIdx = result.postIdx + 10;
-        db.collection('meta').remove({});
-        db.collection('meta').insert({postIdx: postIdx, lastCall: result.lastCall});
-        retrievePosts(postIdx, (posts) => {
-          res.render('post/posts', {term: null, posts: posts});
+        db.collection('meta').updateOne({}, {$set: {postIdx: postIdx, lastCall: result.lastCall}}, {upsert: true}, (err, upd) => {
+          if (err) {
+            console.error(err);
+          }
+          retrievePosts(postIdx, (posts) => {
+            res.render('post/posts', {term: null, posts: posts});
+          });
         });
       }
     });

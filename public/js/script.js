@@ -53,6 +53,7 @@ function makePost(div, postText) {
 
 function loadPosts(div) {
   var loadingGif = document.getElementById('post-load');
+  loadingGif.style.display = 'block';
   var request = new XMLHttpRequest();
   request.onload = function() {
     loadingGif.style.display = 'none';
