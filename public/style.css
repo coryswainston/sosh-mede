@@ -69,7 +69,7 @@ h1 {
 }
 
 .material-icons:hover, .submit-button.material-icons:hover {
-  color: var(--grey);
+  /* color: var(--grey); */
   text-shadow: -1px 1px 2px lightgrey;
 }
 
