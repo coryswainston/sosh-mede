@@ -95,7 +95,8 @@ function checkForLink(text) {
   var words = text.split(' ');
   var lastWord = words[words.length - 1];
   if (lastWord.startsWith('http')) {
-    words[words.length - 1] = '<a class="post-link" href="' + lastWord + '">';
+    words[words.length - 1] = '<a class="post-link" href="' + lastWord + '">'
+      + lastWord + '</a>';
     text = words.join(' ');
   }
 
