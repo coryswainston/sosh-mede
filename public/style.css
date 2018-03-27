@@ -158,6 +158,11 @@ main {
   height: 1em;
 }
 
+.post-content {
+  max-width: calc(100% - 80px);
+  overflow: hidden;
+}
+
 .post-image, .post-video {
   width: 100%;
   max-width: 400px;
