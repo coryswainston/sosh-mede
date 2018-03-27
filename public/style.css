@@ -90,6 +90,10 @@ main {
   font-size: 1em;
 }
 
+input[type=text] {
+  -webkit-appearance: none;
+}
+
 #search-form {
   display: flex;
   justify-content: space-between;
