@@ -145,18 +145,6 @@ main {
 }
 */
 
-#post-load {
-  text-align: center;
-  width: 100%;
-}
-
-#post-load img {
-  max-width: 400px;
-  min-width: 200px;
-  position: relative;
-  top: -80px;
-}
-
 .post {
   box-sizing: border-box;
   padding: 10px;
@@ -196,4 +184,30 @@ main {
 
 .light {
   color: #444;
+}
+
+#post-load {
+  text-align: center;
+  width: 100%;
+  height: 20pt;
+}
+
+@keyframes load {
+    0% {color: white; font-size: 16pt;}
+    50% {color: #bbf; font-size: 17pt;}
+    100% {color: white; font-size: 16pt;}
+}
+
+.loading {
+  font-family: Montserrat, sans-serif;
+  -webkit-user-select: none; /* Safari */
+  -moz-user-select: none; /* Firefox */
+  -ms-user-select: none; /* IE10+/Edge */
+  user-select: none; /* Standard */
+  font-size: 20pt;
+  animation-name: load;
+  animation-duration: 2s;
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
+  text-transform: uppercase;
 }
