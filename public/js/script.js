@@ -43,7 +43,7 @@ function makePost(div, postText) {
       var successLink = '<a href="' + response.postUrl + '">Successfully posted!</a>';
       div.innerHTML += successLink;
     } else {
-      // do nothing yet
+      div.innerHTML += '<p>There was an error posting your status.</p>'
     }
   }
   request.open('POST', '/post', true);
@@ -55,11 +55,19 @@ function loadPosts(div) {
   var loadingGif = document.getElementById('post-load');
   loadingGif.style.display = 'block';
   var request = new XMLHttpRequest();
-  request.onload = function() {
-    loadingGif.style.display = 'none';
+  request.onreadystatechange = function() {
     if (request.status === 200) {
+      loadingGif.style.display = 'none';
       div.innerHTML += request.responseText;
     }
+  };
+  request.onerror = function() {
+    loadingGif.style.display = 'none';
+    var errorMessage = '<p id="error-loading">Couldn\'t load posts.</p>';
+    if (document.getElementById('error-loading') == null) {
+      div.innerHTML += errorMessage;
+    }
+    window.onscroll = null;
   };
   request.open('GET', '/posts', true);
   request.send();
@@ -67,10 +75,14 @@ function loadPosts(div) {
 
 function searchPosts(div, term) {
   var request = new XMLHttpRequest();
-  request.onload = function() {
+  request.onreadystatechange = function() {
     if (request.status === 200) {
       div.innerHTML = request.responseText;
     }
+  };
+  request.onerror = function() {
+    loadingGif.style.display = 'none';
+    div.innerHTML += '<p>Couldn\'t load posts.</p>'
   };
   request.open('GET', '/search?term=' + term, true);
   request.send();
