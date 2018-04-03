@@ -97,7 +97,7 @@ function connect() {
   return new twitterAPI({
       consumerKey:     process.env.CONSUMER_KEY,
       consumerSecret:  process.env.CONSUMER_SECRET,
-      callback:       'http://localhost:8000/twitter/auth/callback'
+      callback:        process.env.TWITTER_CALLBACK
     });
 }
 
