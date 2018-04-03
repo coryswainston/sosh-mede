@@ -10,7 +10,10 @@ app.set('port', (process.env.PORT || 8000))
   .use(session({
     secret: 'fix this later',
     resave: false,
-    saveUninitialized: true
+    saveUninitialized: true,
+    cookie: {
+      maxAge: 604800000 // a week
+    }
   }))
   .set('views', __dirname + '/views')
   .set('view engine', 'ejs')
