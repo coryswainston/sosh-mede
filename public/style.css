@@ -162,6 +162,10 @@ input[type=text] {
   height: 1em;
 }
 
+.post-user strong {
+  font-weight: 600;
+}
+
 .post-content {
   max-width: calc(100% - 80px);
   overflow: hidden;
