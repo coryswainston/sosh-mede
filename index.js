@@ -1,31 +1,78 @@
 const express = require('express');
 const app = express();
+const session = require('express-session');
 const TwitterHelper = require('./helpers/twitterHelper.js')
 
 app.set('port', (process.env.PORT || 8000))
   .use(express.static(__dirname + '/public'))
   .use(express.urlencoded({extended:true}))
   .use(express.json())
+  .use(session({
+    secret: 'fix this later',
+    resave: false,
+    saveUninitialized: true
+  }))
   .set('views', __dirname + '/views')
   .set('view engine', 'ejs')
+  .get('/twitter/auth/callback', twitterCallback)
+  .get('/twitter/auth', twitterAuthenticate)
+  .get('/login', login)
   .get('/', getFeed)
   .get('/search', searchPosts)
   .get('/posts', renderPosts)
   .post('/post', makePost)
   .listen(app.get('port'), () => console.log('Listening on ' + app.get('port')));
 
+function login(req, res) {
+  res.render('pages/login');
+}
+
+function twitterCallback(req, res) {
+  TwitterHelper.getTwitterAccessToken(
+    req.session.twitterRequest.token,
+    req.session.twitterRequest.secret,
+    req.query.oauth_verifier,
+    (err, accessToken, accessTokenSecret, results) => {
+      if (err) {
+        console.error(err);
+      } else {
+        req.session.twitterCred = {
+          accessToken: accessToken,
+          accessTokenSecret: accessTokenSecret
+        };
+        res.redirect('/');
+      }
+    });
+}
+
+function twitterAuthenticate(req, res) {
+  var token = TwitterHelper.getTwitterToken((err, obj) => {
+    if (err) {
+      console.error(err);
+      res.end();
+    } else {
+      req.session.twitterRequest = obj;
+      res.redirect('https://twitter.com/oauth/authenticate?oauth_token=' + obj.token);
+    }
+  });
+}
+
 function getFeed(req, res) {
+  if (!req.session.twitterCred) {
+    res.redirect('/login');
+  } else {
     res.render('pages/feed', {term: null});
+  }
 }
 
 function makePost(req, res) {
-  TwitterHelper.makePost(req.body.postText, (success, url) => {
+  TwitterHelper.makePost(req.session.twitterCred, req.body.postText, (success, url) => {
     res.json({success: success, postUrl: url});
   });
 }
 
 function searchPosts(req, res) {
-  TwitterHelper.search(req.query.term, (err, posts) => {
+  TwitterHelper.search(req.session.twitterCred, req.query.term, (err, posts) => {
     if (err) {
       console.error(err);
     }
@@ -33,8 +80,8 @@ function searchPosts(req, res) {
   });
 }
 
-function getPosts(callback) {
-  TwitterHelper.getTimeline((err, posts) => {
+function getPosts(cred, callback) {
+  TwitterHelper.getTimeline(cred, (err, posts) => {
     if (err) {
       console.error(err);
     }
@@ -91,11 +138,11 @@ function renderPosts(req, res) {
         result = {lastCall: new Date(), postIdx: 0};
       }
       if(new Date().getTime() - Date.parse(result.lastCall) > 120000) { // 2 minutes in millis
-        console.log('Making an API call');
-        getPosts(() => {
+        console.log('Making an API call: ' + req.session.twitterCred);
+        getPosts(req.session.twitterCred, () => {
           retrievePosts(0, (posts) => {
             res.render('post/posts', {term: null, posts: posts});
-          })
+          });
         });
       } else {
         console.log('Avoiding an API call');

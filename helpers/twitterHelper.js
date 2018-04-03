@@ -1,18 +1,22 @@
-const Twit = require('twit');
+const twitterAPI = require('node-twitter-api');
 
 module.exports = {
   makePost: makePost,
   search: search,
-  getTimeline: getTimeline
+  getTimeline: getTimeline,
+  getTwitterToken: getTwitterToken,
+  getTwitterAccessToken: getTwitterAccessToken
 }
 
 /**
  * Posts a tweet
  */
-function makePost(postText, callback) {
+function makePost(cred, postText, callback) {
   var T = connect();
 
-  T.post('statuses/update', { status: postText }, (err, data, response) => {
+  T.statuses('update', { status: postText },
+  cred.accessToken, cred.accessTokenSecret,
+  (err, data, response) => {
     var id = data.id_str;
     var url = 'https://twitter.com/cs313test/status/' + id;
 
@@ -23,10 +27,18 @@ function makePost(postText, callback) {
 /**
  * Search Twitter for a String
  */
-function search(term, callback) {
+function search(cred, term, callback) {
   var T = connect();
 
-  T.get('search/tweets', {count: 10, tweet_mode: 'extended', q: term, lang: 'en'}, (err, data, response) => {
+  T.search({
+    count: 10,
+    tweet_mode: 'extended',
+    q: term,
+    lang: 'en'
+  },
+  cred.accessToken,
+  cred.accessTokenSecret,
+  (err, data, response) => {
     var posts = new Array();
 
     if (err) {
@@ -46,13 +58,15 @@ function search(term, callback) {
 /**
  * Get the first 100 posts on a user's timeline
  */
-function getTimeline(callback) {
+function getTimeline(cred, callback) {
   var T = connect();
 
-  T.get('statuses/home_timeline', {count: 100, tweet_mode: 'extended'}, (err, data, response) => {
+  T.getTimeline('home_timeline', {count: 100, tweet_mode: 'extended'},
+   cred.accessToken, cred.accessTokenSecret,
+   (err, data, response) => {
     var posts = new Array();
     if (err) {
-      callback(err, posts);
+      return callback(err, posts);
     }
 
     for (var i = 0; i < data.length; i++) {
@@ -63,12 +77,27 @@ function getTimeline(callback) {
   });
 }
 
+function getTwitterAccessToken(reqToken, reqSecret, verifier, callback) {
+  var T = connect();
+  T.getAccessToken(reqToken, reqSecret, verifier, callback);
+}
+
+function getTwitterToken(callback) {
+  var T = connect();
+  T.getRequestToken((err, tok, sec, results) => {
+    callback(err, {
+      token: tok,
+      secret: sec
+    });
+  });
+
+}
+
 function connect() {
-  return new Twit({
-      consumer_key:         process.env.CONSUMER_KEY,
-      consumer_secret:      process.env.CONSUMER_SECRET,
-      access_token:         process.env.ACCESS_TOKEN,
-      access_token_secret:  process.env.ACCESS_TOKEN_SECRET
+  return new twitterAPI({
+      consumerKey:     process.env.CONSUMER_KEY,
+      consumerSecret:  process.env.CONSUMER_SECRET,
+      callback:       'http://localhost:8000/twitter/auth/callback'
     });
 }
 
