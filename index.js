@@ -98,10 +98,11 @@ function savePosts(posts, callback) {
 
     db.collection('posts').drop((err, res) => {
       db.collection('posts').insert(posts, (err, res) => {
-        db.collection('meta').updateOne({}, {$set: {postIdx: 0, lastCall: new Date()}}, true, (err, res) => {
-          cli.close();
-          callback();
-        });
+        if (err) {
+          console.error(err);
+        }
+        cli.close();
+        callback();
       });
     });
   });
@@ -118,46 +119,28 @@ function retrievePosts(idx, callback) {
       if (err) {
         console.error(err);
       }
-
       cli.close();
-
       callback(posts);
     });
   });
 }
 
 function renderPosts(req, res) {
-  getMongoClient((err, cli) => {
-    var db = cli.db('sosh-mede');
-    db.collection('meta').findOne({}, (err, result) => {
-      if (err) {
-        console.error(err);
-      }
-      if (result == null) {
-        console.log('result was null');
-        result = {lastCall: new Date(), postIdx: 0};
-      }
-      if(new Date().getTime() - Date.parse(result.lastCall) > 120000) { // 2 minutes in millis
-        console.log('Making an API call: ' + req.session.twitterCred);
-        getPosts(req.session.twitterCred, () => {
-          retrievePosts(0, (posts) => {
-            res.render('post/posts', {term: null, posts: posts});
-          });
-        });
-      } else {
-        console.log('Avoiding an API call');
-        var postIdx = result.postIdx + 10;
-        db.collection('meta').updateOne({}, {$set: {postIdx: postIdx, lastCall: result.lastCall}}, {upsert: true}, (err, upd) => {
-          if (err) {
-            console.error(err);
-          }
-          retrievePosts(postIdx, (posts) => {
-            res.render('post/posts', {term: null, posts: posts});
-          });
-        });
-      }
+  var idx = req.query.idx;
+
+  if (idx == 0) {
+    console.log('Making an API call');
+    getPosts(req.session.twitterCred, () => {
+      retrievePosts(0, (posts) => {
+        res.render('post/posts', {term: null, posts: posts});
+      });
     });
-  });
+  } else {
+    console.log('Avoiding an API call');
+    retrievePosts(idx, (posts) => {
+      res.render('post/posts', {term: null, posts: posts});
+    });
+  }
 }
 
 function getMongoClient(callback) {

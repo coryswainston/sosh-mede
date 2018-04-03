@@ -1,3 +1,5 @@
+var idx = 0;
+
 window.onload = function() {
   var videos = document.getElementsByClassName('post-video');
   for (var i = 0; i < videos.length; i++) {
@@ -69,8 +71,9 @@ function loadPosts(div) {
     }
     window.onscroll = null;
   };
-  request.open('GET', '/posts', true);
+  request.open('GET', '/posts?idx=' + idx, true);
   request.send();
+  idx += 10;
 }
 
 function searchPosts(div, term) {
