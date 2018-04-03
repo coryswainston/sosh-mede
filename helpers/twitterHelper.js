@@ -71,7 +71,9 @@ function getTimeline(cred, callback) {
 
     for (var i = 0; i < data.length; i++) {
       var post = assembleTweet(i, data[i]);
-      posts.push(post);
+      if (post != null) {
+        posts.push(post);
+      }
     }
     callback(null, posts);
   });
@@ -102,6 +104,18 @@ function connect() {
 }
 
 function assembleTweet(id, tweet) {
+
+  var values = new Array(
+    tweet.full_text,
+    tweet.user.name,
+    tweet.user.screen_name,
+    tweet.user.profile_image_url,
+    tweet.created_at,
+    tweet.id_str,
+  );
+  if (values.indexOf(null) != -1) {
+    return null;
+  }
 
   var post = {
     id: id,
