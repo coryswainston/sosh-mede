@@ -111,7 +111,7 @@ function assembleTweet(id, tweet) {
     tweet.user.screen_name,
     tweet.user.profile_image_url,
     tweet.created_at,
-    tweet.id_str,
+    tweet.id_str
   );
   if (values.indexOf(null) != -1) {
     return null;
