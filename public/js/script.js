@@ -1,17 +1,6 @@
 var idx = 0;
 
 window.onload = function() {
-  var videos = document.getElementsByClassName('post-video');
-  for (var i = 0; i < videos.length; i++) {
-    var video = {
-      element: videos[i],
-      isPlaying: false
-    }
-    videos[i].addEventListener('click', function(event) {
-      toggleVideoPlaying(video, event);
-    });
-  }
-
   var mainFeed = document.getElementById('main-feed');
   loadPosts(mainFeed);
   window.onscroll = function() {
@@ -32,25 +21,37 @@ window.onload = function() {
   postForm.onsubmit = function(event) {
     event.preventDefault();
     var postInput = document.getElementById('post-input');
+    var platformChecks = document.getElementsByClassName('platform-check');
+    var platforms = new Array();
+    for (var i = 0; i < platformChecks.length; i++) {
+      if (platformChecks[i].checked) {
+        platforms.push(platformChecks[i].value);
+      }
+    }
     var postText = postInput.value;
-    makePost(postForm, postText);
+    if (platforms.length > 0) {
+      makePost(postForm, postText, platforms);
+    }
   }
 }
 
-function makePost(div, postText) {
+function makePost(div, postText, platforms) {
   var request = new XMLHttpRequest();
   request.onload = function() {
     var response = JSON.parse(request.responseText);
-    if (response.success == true) {
-      var successLink = '<a href="' + response.postUrl + '">Successfully posted!</a>';
-      div.innerHTML += successLink;
-    } else {
-      div.innerHTML += '<p>There was an error posting your status.</p>'
+    var success = true;
+    for (var i = 0; i < response.length; i++) {
+      if (response[i].success == true) {
+        var successLink = '<br/><a href="' + response[i].postUrl + '">Successfully posted on ' + response[i].platform + '!</a>';
+        div.innerHTML += successLink;
+      } else {
+        div.innerHTML += '<p>There was an error posting your status on ' + response[i].platform + '.</p>';
+      }
     }
   }
   request.open('POST', '/post', true);
   request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
-  request.send('postText=' + postText);
+  request.send('postText=' + postText + '&platforms=' + JSON.stringify(platforms));
 }
 
 function loadPosts(div) {
@@ -91,13 +92,14 @@ function searchPosts(div, term) {
   request.send();
 }
 
-function toggleVideoPlaying(video, event) {
-    event.preventDefault();
-    if (video.isPlaying) {
-      video.element.pause();
-      video.isPlaying = false;
-    } else {
-      video.element.play();
-      video.isPlaying = true;
-    }
+var videos = new Array();
+
+function toggleVideoPlaying(video) {
+  console.log('called');
+  console.log(video);
+  if (video.paused) {
+    video.play();
+  } else {
+    video.pause();
+  }
 }

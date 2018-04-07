@@ -14,7 +14,7 @@
           <%- post.text %>
         </p>
         <% if (post.video) { %>
-          <video class="post-video" poster="<%= post.photo %>" loop>
+          <video onclick="toggleVideoPlaying(this)" class="post-video" poster="<%= post.photo %>" loop>
             <% post.video.forEach((variant) => { %>
             <source src="<%= variant.url %>" type="<%= variant.content_type %>">
             <% }); %>

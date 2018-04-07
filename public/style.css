@@ -125,6 +125,12 @@ input[type=text] {
   border: 1px solid var(--blue);
 }
 
+.small-image {
+  width: 15px;
+  margin-right: 20px;
+  cursor: pointer;
+}
+
 .post-link {
   color: var(--blue);
 }
@@ -174,6 +180,12 @@ input[type=text] {
 .post-image, .post-video {
   width: 100%;
   max-width: 400px;
+  cursor: pointer;
+}
+
+.post-video:hover {
+  -webkit-filter: opacity(.7);
+  filter: opacity(.7);
 }
 
 .post-wrapper {

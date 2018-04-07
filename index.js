@@ -11,9 +11,6 @@ app.set('port', (process.env.PORT || 8000))
     secret: 'fix this later',
     resave: false,
     saveUninitialized: true,
-    cookie: {
-      maxAge: 604800000 // a week
-    }
   }))
   .set('views', __dirname + '/views')
   .set('view engine', 'ejs')
@@ -69,8 +66,42 @@ function getFeed(req, res) {
 }
 
 function makePost(req, res) {
-  TwitterHelper.makePost(req.session.twitterCred, req.body.postText, (success, url) => {
-    res.json({success: success, postUrl: url});
+  var results = new Array();
+  var platforms = JSON.parse(req.body.platforms);
+
+  var postText = req.body.postText;
+
+  function postToTwitter(callback) {
+    console.log("postToTwitter")
+    if (platforms.indexOf('twitter') != -1) {
+      TwitterHelper.makePost(req.session.twitterCred, postText, (success, url) => {
+        results.push({platform: 'twitter', success: success, postUrl: url});
+        callback();
+      });
+    } else {
+      console.log("postToTwitter else")
+      callback();
+    }
+  }
+  function postToFacebook(callback) {
+    if (platforms.indexOf('facebook') != -1) {
+      results.push({platform: 'facebook', success: false, postUrl: null});
+    }
+    callback();
+  }
+  function postToInstagram(callback) {
+    if (platforms.indexOf('instagram') != -1) {
+      results.push({platform: 'instagram', success: false, postUrl: null});
+    }
+    callback();
+  }
+
+  postToTwitter(() => {
+    postToFacebook(() => {
+      postToInstagram(() => {
+        res.json(results);
+      });
+    });
   });
 }
 
@@ -100,6 +131,9 @@ function savePosts(posts, callback) {
     var db = cli.db('sosh-mede');
 
     db.collection('posts').drop((err, res) => {
+      if (err) {
+        console.error(err);
+      }
       db.collection('posts').insert(posts, (err, res) => {
         if (err) {
           console.error(err);
@@ -118,7 +152,7 @@ function retrievePosts(idx, callback) {
     }
     var db = cli.db('sosh-mede');
     var posts = new Array();
-    db.collection('posts').find({'id': {$gte:idx}}).limit(10).toArray((err, posts) => {
+    db.collection('posts').find({'id': {$gte:idx}}).limit(100).toArray((err, posts) => {
       if (err) {
         console.error(err);
       }
