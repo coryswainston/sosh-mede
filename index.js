@@ -2,6 +2,30 @@ const express = require('express');
 const app = express();
 const session = require('express-session');
 const TwitterHelper = require('./helpers/twitterHelper.js')
+const passport = require('passport');
+const Strategy = require('passport-facebook').Strategy;
+const FB = require('fb');
+
+passport.use(new Strategy({
+  clientID: process.env.FB_APP_ID,
+  clientSecret: process.env.FB_APP_SECRET,
+  callbackURL: process.env.FB_CALLBACK
+}, (accessToken, refreshToken, profile, cb) => {
+
+  return cb(null, {
+    token: accessToken,
+    profile: profile
+  });
+}));
+
+passport.serializeUser(function(user, cb) {
+  cb(null, user);
+});
+
+passport.deserializeUser(function(obj, cb) {
+  cb(null, obj);
+});
+
 
 app.set('port', (process.env.PORT || 8000))
   .use(express.static(__dirname + '/public'))
@@ -12,6 +36,8 @@ app.set('port', (process.env.PORT || 8000))
     resave: false,
     saveUninitialized: true,
   }))
+  .use(passport.initialize())
+  .use(passport.session())
   .set('views', __dirname + '/views')
   .set('view engine', 'ejs')
   .get('/twitter/auth/callback', twitterCallback)
@@ -20,6 +46,11 @@ app.set('port', (process.env.PORT || 8000))
   .get('/', getFeed)
   .get('/search', searchPosts)
   .get('/posts', renderPosts)
+  .get('/fb/auth', passport.authenticate('facebook', {scope: ['publish_actions', 'user_posts', 'user_photos']}))
+  .get('/fb/auth/callback', passport.authenticate('facebook', {failureRedirect: '/login'}), (req, res) => {
+    req.session.fbCred = req.user;
+    res.redirect('/');
+  })
   .post('/post', makePost)
   .listen(app.get('port'), () => console.log('Listening on ' + app.get('port')));
 
@@ -58,7 +89,7 @@ function twitterAuthenticate(req, res) {
 }
 
 function getFeed(req, res) {
-  if (!req.session.twitterCred) {
+  if (!req.session.twitterCred && !req.session.fbCred) {
     res.redirect('/login');
   } else {
     res.render('pages/feed', {term: null});
@@ -72,22 +103,30 @@ function makePost(req, res) {
   var postText = req.body.postText;
 
   function postToTwitter(callback) {
-    console.log("postToTwitter")
     if (platforms.indexOf('twitter') != -1) {
       TwitterHelper.makePost(req.session.twitterCred, postText, (success, url) => {
         results.push({platform: 'twitter', success: success, postUrl: url});
         callback();
       });
     } else {
-      console.log("postToTwitter else")
       callback();
     }
   }
   function postToFacebook(callback) {
     if (platforms.indexOf('facebook') != -1) {
-      results.push({platform: 'facebook', success: false, postUrl: null});
+      var fb = FB.extend({appId: process.env.FB_APP_ID, appSecret: process.env.FB_APP_SECRET});
+      fb.setAccessToken(req.session.fbCred.token);
+      fb.api('me/feed', 'post', {message: postText}, fbRes => {
+        if (fbRes.error) {
+          console.error(fbRes.error);
+          return;
+        }
+        results.push({platform: 'facebook', success: fbRes.error == null, postUrl: null});
+        callback();
+      });
+    } else {
+      callback();
     }
-    callback();
   }
   function postToInstagram(callback) {
     if (platforms.indexOf('instagram') != -1) {
@@ -152,7 +191,7 @@ function retrievePosts(idx, callback) {
     }
     var db = cli.db('sosh-mede');
     var posts = new Array();
-    db.collection('posts').find({'id': {$gte:idx}}).limit(100).toArray((err, posts) => {
+    db.collection('posts').find({'id': {$gte:idx}}).limit(10).toArray((err, posts) => {
       if (err) {
         console.error(err);
       }
@@ -166,12 +205,44 @@ function renderPosts(req, res) {
   var idx = req.query.idx;
 
   if (idx == 0) {
-    console.log('Making an API call');
-    getPosts(req.session.twitterCred, () => {
-      retrievePosts(0, (posts) => {
+    var posts = new Array();
+    if (req.session.twitterCred) {
+      console.log('Making an API call');
+      getPosts(req.session.twitterCred, () => {
+        retrievePosts(0, (tweets) => {
+          res.render('post/posts', {term: null, posts: posts});
+        });
+      });
+    }
+    if (req.session.fbCred) {
+      var fb = FB.extend({appId: process.env.FB_APP_ID, appSecret: process.env.FB_APP_SECRET});
+      fb.setAccessToken(req.session.fbCred.token);
+      fb.api('me/feed', {fields: ['message', 'created_time', 'from', 'full_picture'], limit: 10}, fbRes => {
+        if (fbRes.error) {
+          console.error(fbRes.error);
+          return;
+        }
+        var posts = new Array();
+        var fbPosts = fbRes.data;
+        console.log(fbPosts.length);
+        for (var i = 0; i < fbPosts.length; i++) {
+          posts.push({
+            id: 0,
+            text: fbPosts[i].message,
+            userName: fbPosts[i].from.name,
+            userHandle: null,
+            userPic: 'images/fb-icon.png',
+            date: fbPosts[i].created_time,
+            url: 'https://www.facebook.com',
+            icon: 'images/fb-icon.png',
+            sharedPost: null,
+            photo: fbPosts[i].full_picture ? fbPosts[i].full_picture : null,
+            video: fbPosts[i].source ? fbPosts[i].source : null
+          });
+        }
         res.render('post/posts', {term: null, posts: posts});
       });
-    });
+    }
   } else {
     console.log('Avoiding an API call');
     retrievePosts(idx, (posts) => {

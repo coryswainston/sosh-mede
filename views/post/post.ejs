@@ -7,7 +7,9 @@
       <div class="post-content">
         <div class="post-user">
           <strong><%= post.userName %></strong>
+          <% if (post.userHandle) { %>
           <span class="light">@<%= post.userHandle %></span>
+          <% } %>
           <img src="<%= post.icon %>" alt="">
         </div>
         <p>

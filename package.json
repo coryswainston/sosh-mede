@@ -12,7 +12,9 @@
     "express-session": "^1.15.6",
     "fb": "^2.0.0",
     "mongodb": "^3.0.5",
-    "node-twitter-api": "^1.8.0"
+    "node-twitter-api": "^1.8.0",
+    "passport": "^0.4.0",
+    "passport-facebook": "^2.1.1"
   },
   "engines": {
     "node": "4.0.0"
