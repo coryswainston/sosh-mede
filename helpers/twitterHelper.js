@@ -122,6 +122,7 @@ function assembleTweet(id, tweet) {
     text: checkForLink(tweet.full_text),
     userName: tweet.user.name,
     userHandle: tweet.user.screen_name,
+    story: null,
     userPic: tweet.user.profile_image_url.replace('_normal', '_400x400'),
     date: formatTime(tweet.created_at),
     url: 'https://twitter.com/' + tweet.user.screen_name + '/status/' + tweet.id_str,

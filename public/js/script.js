@@ -61,7 +61,7 @@ function loadPosts(div) {
   request.onreadystatechange = function() {
     if (request.status === 200) {
       loadingGif.style.display = 'none';
-      div.innerHTML += request.responseText;
+      div.innerHTML = request.responseText;
     }
   };
   request.onerror = function() {

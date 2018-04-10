@@ -217,30 +217,36 @@ function renderPosts(req, res) {
     if (req.session.fbCred) {
       var fb = FB.extend({appId: process.env.FB_APP_ID, appSecret: process.env.FB_APP_SECRET});
       fb.setAccessToken(req.session.fbCred.token);
-      fb.api('me/feed', {fields: ['message', 'created_time', 'from', 'full_picture'], limit: 10}, fbRes => {
-        if (fbRes.error) {
-          console.error(fbRes.error);
-          return;
+      fb.api('me/picture', {redirect: 0, type: 'normal'}, picRes => {
+        if (picRes.error) {
+          console.error(picRes.error);
         }
-        var posts = new Array();
-        var fbPosts = fbRes.data;
-        console.log(fbPosts.length);
-        for (var i = 0; i < fbPosts.length; i++) {
-          posts.push({
-            id: 0,
-            text: fbPosts[i].message,
-            userName: fbPosts[i].from.name,
-            userHandle: null,
-            userPic: 'images/fb-icon.png',
-            date: fbPosts[i].created_time,
-            url: 'https://www.facebook.com',
-            icon: 'images/fb-icon.png',
-            sharedPost: null,
-            photo: fbPosts[i].full_picture ? fbPosts[i].full_picture : null,
-            video: fbPosts[i].source ? fbPosts[i].source : null
-          });
-        }
-        res.render('post/posts', {term: null, posts: posts});
+        var profilePic = picRes.data.url;
+        fb.api('me/feed', {fields: ['message', 'created_time', 'from', 'full_picture', 'story'], limit: 10}, fbRes => {
+          if (fbRes.error) {
+            console.error(fbRes.error);
+            return;
+          }
+          var posts = new Array();
+          var fbPosts = fbRes.data;
+          for (var i = 0; i < fbPosts.length; i++) {
+            posts.push({
+              id: 0,
+              text: fbPosts[i].message,
+              userName: fbPosts[i].from.name,
+              userHandle: null,
+              story: fbPosts[i].story,
+              userPic: profilePic,
+              date: fbPosts[i].created_time,
+              url: 'https://www.facebook.com',
+              icon: 'images/fb-icon.png',
+              sharedPost: null,
+              photo: fbPosts[i].full_picture ? fbPosts[i].full_picture : null,
+              video: fbPosts[i].source ? fbPosts[i].source : null
+            });
+          }
+          res.render('post/posts', {term: null, posts: posts});
+        });
       });
     }
   } else {

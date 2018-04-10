@@ -135,6 +135,11 @@ input[type=text] {
   color: var(--blue);
 }
 
+.fb-story {
+  font-style: italic;
+  color: #777;
+}
+
 .submit-button {
 
 }
