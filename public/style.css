@@ -64,6 +64,10 @@ h1 {
   font-size: inherit;
 }
 
+h1:hover {
+  text-decoration: none;
+}
+
 .material-icons {
   font-size: inherit;
   transition: color 200ms;
@@ -81,6 +85,10 @@ p {
 a {
   text-decoration: none;
   color: inherit;
+}
+
+.login-main {
+  font-size: 2em;
 }
 
 small {
@@ -118,6 +126,12 @@ input[type=text] {
   margin-bottom: 40px;
 }
 
+#post-status {
+  text-align: left;
+  font-size: 0.8em;
+  padding: 0 10px;
+}
+
 #post-input, #search-input {
   padding: 10px;
   border-radius: 20px;
@@ -140,6 +154,10 @@ input[type=text] {
 
 .post-link {
   color: var(--blue);
+}
+
+.post-link:hover {
+  text-decoration: underline;
 }
 
 .fb-story {
@@ -247,4 +265,8 @@ input[type=text] {
   animation-iteration-count: infinite;
   animation-timing-function: ease-in-out;
   text-transform: uppercase;
+}
+
+.loading-gif {
+  width: 70px;
 }

@@ -46,7 +46,7 @@ function makePost(cred, postText, callback) {
   getClient(cred).api('me/feed', 'post', {message: postText}, res => {
     if (res.id) {
       var ids = res.id.split('_');
-      var url = 'https://www.facebook.com/' + ids[0] + '/posts' + ids[1];
+      var url = 'https://www.facebook.com/' + ids[0] + '/posts/' + ids[1];
     }
     callback(res.id != null, url);
   });

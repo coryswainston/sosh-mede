@@ -115,7 +115,7 @@ function makePost(req, res) {
   function postToTwitter(callback) {
     if (platforms.indexOf('twitter') != -1) {
       TwitterHelper.makePost(req.session.twitterCred, postText, (success, url) => {
-        results.push({platform: 'twitter', success: success, postUrl: url});
+        results.push({platform: 'Twitter', success: success, postUrl: url});
         callback();
       });
     } else {
@@ -125,7 +125,7 @@ function makePost(req, res) {
   function postToFacebook(callback) {
     if (platforms.indexOf('facebook') != -1) {
       FacebookHelper.makePost(req.session.fbCred, postText, (success, url) => {
-        results.push({platform: 'facebook', success: fbRes.error == null, postUrl: null});
+        results.push({platform: 'Facebook', success: success, postUrl: url});
         callback();
       });
     } else {
@@ -134,7 +134,7 @@ function makePost(req, res) {
   }
   function postToInstagram(callback) {
     if (platforms.indexOf('instagram') != -1) {
-      results.push({platform: 'instagram', success: false, postUrl: null});
+      results.push({platform: 'Instagram', success: false, postUrl: null});
     }
     callback();
   }

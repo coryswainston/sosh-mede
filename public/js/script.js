@@ -25,24 +25,27 @@ window.onload = function() {
     }
     var postText = postInput.value;
     if (platforms.length > 0) {
-      makePost(postForm, postText, platforms);
+      makePost(document.getElementById('post-status'), postText, platforms);
     }
   }
 }
 
 function makePost(div, postText, platforms) {
+  div.innerHTML = '<img class="loading-gif" src="images/loading.gif"/>';
   var request = new XMLHttpRequest();
   request.onload = function() {
     var response = JSON.parse(request.responseText);
     var success = true;
+    var html = "";
     for (var i = 0; i < response.length; i++) {
       if (response[i].success == true) {
-        var successLink = '<br/><a href="' + response[i].postUrl + '">Successfully posted on ' + response[i].platform + '!</a>';
-        div.innerHTML += successLink;
+        var successLink = '<br/><a class="post-link" href="' + response[i].postUrl + '">Successfully posted on ' + response[i].platform + '!</a>';
+        html += successLink;
       } else {
-        div.innerHTML += '<p>There was an error posting your status on ' + response[i].platform + '.</p>';
+        html += '<br/>Unable to post this status on ' + response[i].platform + '.';
       }
     }
+    div.innerHTML = html;
   }
   request.open('POST', '/post', true);
   request.setRequestHeader('Content-type', 'application/x-www-form-urlencoded');
