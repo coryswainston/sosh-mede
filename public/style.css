@@ -11,7 +11,8 @@ body {
   background: var(--offwhite);
 }
 
-header {
+#header-wrapper {
+  width: 100%;
   display: flex;
   justify-content: space-between;
   align-items: flex-end;
@@ -92,6 +93,12 @@ main {
 
 input[type=text] {
   -webkit-appearance: none;
+}
+
+.login {
+  color: black;
+  font-size: .75em;
+  text-align: right;
 }
 
 #search-form {

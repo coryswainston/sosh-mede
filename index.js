@@ -1,18 +1,16 @@
 const express = require('express');
 const app = express();
 const session = require('express-session');
-const TwitterHelper = require('./helpers/twitterHelper.js')
+const TwitterHelper = require('./helpers/twitterHelper.js');
+const FacebookHelper = require('./helpers/fbHelper.js');
 const passport = require('passport');
 const Strategy = require('passport-facebook').Strategy;
-const FB = require('fb');
 
 passport.use(new Strategy({
-  clientID: process.env.FB_APP_ID,
-  clientSecret: process.env.FB_APP_SECRET,
-  callbackURL: process.env.FB_CALLBACK
-}, (accessToken, refreshToken, profile, cb) => {
-
-  console.log(profile);
+    clientID: process.env.FB_APP_ID,
+    clientSecret: process.env.FB_APP_SECRET,
+    callbackURL: process.env.FB_CALLBACK
+  }, (accessToken, refreshToken, profile, cb) => {
 
   return cb(null, {
     token: accessToken,
@@ -94,7 +92,17 @@ function getFeed(req, res) {
   if (!req.session.twitterCred && !req.session.fbCred) {
     res.redirect('/login');
   } else {
-    res.render('pages/feed', {term: null});
+    var signedIn = new Array();
+    if (req.session.twitterCred) {
+      signedIn.push('Twitter');
+    }
+    if (req.session.fbCred) {
+      signedIn.push('Facebook');
+    }
+    if (req.session.instaCred) {
+      signedIn.push('Instagram');
+    }
+    res.render('pages/feed', {term: null, signedIn: signedIn});
   }
 }
 
@@ -116,13 +124,7 @@ function makePost(req, res) {
   }
   function postToFacebook(callback) {
     if (platforms.indexOf('facebook') != -1) {
-      var fb = FB.extend({appId: process.env.FB_APP_ID, appSecret: process.env.FB_APP_SECRET});
-      fb.setAccessToken(req.session.fbCred.token);
-      fb.api('me/feed', 'post', {message: postText}, fbRes => {
-        if (fbRes.error) {
-          console.error(fbRes.error);
-          return;
-        }
+      FacebookHelper.makePost(req.session.fbCred, postText, (success, url) => {
         results.push({platform: 'facebook', success: fbRes.error == null, postUrl: null});
         callback();
       });
@@ -155,49 +157,48 @@ function searchPosts(req, res) {
   });
 }
 
-function getTweets(cred, callback) {
-  TwitterHelper.getTimeline(cred, (err, posts) => {
-    if (err) {
-      console.error(err);
-    }
-    callback(posts);
-  });
-}
-
 function renderPosts(req, res) {
   var posts = new Array();
-  if (req.session.twitterCred) {
-    console.log('Making an API call');
-    getTweets(req.session.twitterCred, (posts) => {
-      res.render('post/posts', {term: null, posts: posts});
-    });
+
+  function getTweets(callback) {
+    if (req.session.twitterCred) {
+      console.log('Making an API call');
+      TwitterHelper.getTimeline(req.session.twitterCred, (err, tweets) => {
+        if (err) console.error(err);
+        posts = posts.concat(tweets);
+        callback();
+      });
+    } else {
+      callback();
+    }
   }
-  if (req.session.fbCred) {
-    var fb = FB.extend({appId: process.env.FB_APP_ID, appSecret: process.env.FB_APP_SECRET});
-    fb.setAccessToken(req.session.fbCred.token);
-    fb.api('me/feed', {fields: ['message', 'created_time', 'from{name,picture.type(normal)}', 'full_picture', 'story']}, fbRes => {
-      if (fbRes.error) {
-        console.error(fbRes.error);
-        return;
-      }
-      var posts = new Array();
-      var fbPosts = fbRes.data;
-      for (var i = 0; i < fbPosts.length; i++) {
-        posts.push({
-          text: fbPosts[i].message,
-          userName: fbPosts[i].from.name,
-          userHandle: null,
-          story: fbPosts[i].story,
-          userPic: fbPosts[i].from.picture.data.url,
-          date: fbPosts[i].created_time,
-          url: 'https://www.facebook.com',
-          icon: 'images/fb-icon.png',
-          sharedPost: null,
-          photo: fbPosts[i].full_picture ? fbPosts[i].full_picture : null,
-          video: fbPosts[i].source ? fbPosts[i].source : null
-        });
-      }
-      res.render('post/posts', {term: null, posts: posts});
-    });
+
+  function getFbPosts(callback) {
+    if (req.session.fbCred) {
+      console.log('Making a Facebook API call');
+      FacebookHelper.getTimeline(req.session.fbCred, (err, fbPosts) => {
+        if (err) console.error(err);
+        posts = posts.concat(fbPosts);
+        callback();
+      });
+    } else {
+      callback();
+    }
   }
+
+  function getInstaPosts(callback) {
+    console.log('Skipping Instagram-- not implemented yet.');
+    callback();
+  }
+
+  getTweets(() => {
+    getFbPosts(() => {
+      getInstaPosts(() => {
+        posts.sort((a, b) => {
+          return Date.parse(b.date) - Date.parse(a.date);
+        })
+        res.render('post/posts', {term: null, posts: posts});
+      });
+    });
+  });
 }

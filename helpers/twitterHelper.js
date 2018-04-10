@@ -1,4 +1,5 @@
 const twitterAPI = require('node-twitter-api');
+const timeUtil = require('./timeUtil.js');
 
 module.exports = {
   makePost: makePost,
@@ -66,11 +67,11 @@ function getTimeline(cred, callback) {
    (err, data, response) => {
     var posts = new Array();
     if (err) {
+      console.error(err);
       return callback(err, posts);
     }
-
     for (var i = 0; i < data.length; i++) {
-      var post = assembleTweet(i, data[i]);
+      var post = assembleTweet(data[i]);
       if (post != null) {
         posts.push(post);
       }
@@ -103,13 +104,14 @@ function connect() {
     });
 }
 
-function assembleTweet(id, tweet) {
+function assembleTweet(tweet) {
+  if (tweet == null) {
+    return null;
+  }
 
   var values = new Array(
     tweet.full_text,
-    tweet.user.name,
-    tweet.user.screen_name,
-    tweet.user.profile_image_url,
+    tweet.user,
     tweet.created_at,
     tweet.id_str
   );
@@ -123,7 +125,8 @@ function assembleTweet(id, tweet) {
     userHandle: tweet.user.screen_name,
     story: null,
     userPic: tweet.user.profile_image_url.replace('_normal', '_400x400'),
-    date: formatTime(tweet.created_at),
+    relativeDate: timeUtil.formatTime(tweet.created_at),
+    date: tweet.created_at,
     url: 'https://twitter.com/' + tweet.user.screen_name + '/status/' + tweet.id_str,
     icon: 'images/twitter-icon.png',
     sharedPost: tweet.quoted_status ? assembleTweet(null, tweet.quoted_status) : null,
@@ -167,34 +170,4 @@ function getVideo(tweet) {
     }
   }
   return null;
-}
-
-function formatTime(timestamp) {
-  var date = new Date(Date.parse(timestamp));
-  var now = new Date(Date.now());
-
-  if (now.getFullYear() - date.getFullYear() > 0) {
-    return getDifference(now.getFullYear(), date.getFullYear(), 'year');
-  }
-  if (now.getMonth() - date.getMonth() > 0) {
-    return getDifference(now.getMonth(), date.getMonth(), 'month');
-  }
-  if (now.getDay() - date.getDay() > 0) {
-    return getDifference(now.getDay(), date.getDay(), 'day');
-  }
-  if (now.getHours() - date.getHours() > 0) {
-    return getDifference(now.getHours(), date.getHours(), 'hour');
-  }
-  if (now.getMinutes() - date.getMinutes() > 0) {
-    return getDifference(now.getMinutes(), date.getMinutes(), 'minute');
-  }
-  return 'Just now';
-}
-
-function getDifference(now, then, unit) {
-  var diff = now - then;
-  if (diff > 1) {
-    unit += 's';
-  }
-  return diff + ' ' + unit + ' ago';
 }

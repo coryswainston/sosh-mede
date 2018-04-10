@@ -12,11 +12,17 @@
   </head>
   <body>
     <header>
-      <a href="/"><h1>The Sosh Mede</h1></a>
-      <form id="search-form">
-        <input id="search-input" type="text" name="term" autocomplete="off"/>
-        <button class="material-icons submit-button" type="submit">
-          search
-        </button>
-      </form>
+      <p class="login">Currently signed into <%= signedIn.join(', ') %>.</p>
+      <p class="login">
+        <a class="post-link" href="/login">Add platforms</a>
+      </p>
+      <div id="header-wrapper">
+        <a href="/"><h1>The Sosh Mede</h1></a>
+        <form id="search-form">
+          <input id="search-input" type="text" name="term" autocomplete="off"/>
+          <button class="material-icons submit-button" type="submit">
+            search
+          </button>
+        </form>
+      </div>
     </header>

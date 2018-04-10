@@ -29,7 +29,7 @@
         <% if (post.sharedPost) { %>
           <%- include('./post', {post: post.sharedPost}); %>
         <% } %>
-        <br /><small><%= post.date %></small>
+        <br /><small><%= post.relativeDate %></small>
       </div>
     </div>
   </a>
