@@ -61,7 +61,7 @@ function search(cred, term, callback) {
 function getTimeline(cred, callback) {
   var T = connect();
 
-  T.getTimeline('home_timeline', {count: 100, tweet_mode: 'extended'},
+  T.getTimeline('home_timeline', {count: 50, tweet_mode: 'extended'},
    cred.accessToken, cred.accessTokenSecret,
    (err, data, response) => {
     var posts = new Array();
@@ -118,7 +118,6 @@ function assembleTweet(id, tweet) {
   }
 
   var post = {
-    id: id,
     text: checkForLink(tweet.full_text),
     userName: tweet.user.name,
     userHandle: tweet.user.screen_name,

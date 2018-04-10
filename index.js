@@ -155,107 +155,49 @@ function searchPosts(req, res) {
   });
 }
 
-function getPosts(cred, callback) {
+function getTweets(cred, callback) {
   TwitterHelper.getTimeline(cred, (err, posts) => {
     if (err) {
       console.error(err);
     }
-    savePosts(posts, callback);
-  });
-}
-
-function savePosts(posts, callback) {
-  getMongoClient((err, cli) => {
-    if (err) {
-      return console.error(err);
-    }
-    var db = cli.db('sosh-mede');
-
-    db.collection('posts').drop((err, res) => {
-      if (err) {
-        console.error(err);
-      }
-      db.collection('posts').insert(posts, (err, res) => {
-        if (err) {
-          console.error(err);
-        }
-        cli.close();
-        callback();
-      });
-    });
-  });
-}
-
-function retrievePosts(idx, callback) {
-  getMongoClient((err, cli) => {
-    if (err) {
-      console.error(err);
-    }
-    var db = cli.db('sosh-mede');
-    var posts = new Array();
-    db.collection('posts').find({'id': {$gte:idx}}).limit(10).toArray((err, posts) => {
-      if (err) {
-        console.error(err);
-      }
-      cli.close();
-      callback(posts);
-    });
+    callback(posts);
   });
 }
 
 function renderPosts(req, res) {
-  var idx = req.query.idx;
-
-  if (idx == 0) {
-    var posts = new Array();
-    if (req.session.twitterCred) {
-      console.log('Making an API call');
-      getPosts(req.session.twitterCred, () => {
-        retrievePosts(0, (tweets) => {
-          res.render('post/posts', {term: null, posts: posts});
-        });
-      });
-    }
-    if (req.session.fbCred) {
-      var fb = FB.extend({appId: process.env.FB_APP_ID, appSecret: process.env.FB_APP_SECRET});
-      fb.setAccessToken(req.session.fbCred.token);
-      fb.api('me/feed', {fields: ['message', 'created_time', 'from{name,picture.type(normal)}', 'full_picture', 'story'], limit: 10}, fbRes => {
-        if (fbRes.error) {
-          console.error(fbRes.error);
-          return;
-        }
-        var posts = new Array();
-        var fbPosts = fbRes.data;
-        for (var i = 0; i < fbPosts.length; i++) {
-          posts.push({
-            id: 0,
-            text: fbPosts[i].message,
-            userName: fbPosts[i].from.name,
-            userHandle: null,
-            story: fbPosts[i].story,
-            userPic: fbPosts[i].from.picture.data.url,
-            date: fbPosts[i].created_time,
-            url: 'https://www.facebook.com',
-            icon: 'images/fb-icon.png',
-            sharedPost: null,
-            photo: fbPosts[i].full_picture ? fbPosts[i].full_picture : null,
-            video: fbPosts[i].source ? fbPosts[i].source : null
-          });
-        }
-        res.render('post/posts', {term: null, posts: posts});
-      });
-    }
-  } else {
-    console.log('Avoiding an API call');
-    retrievePosts(idx, (posts) => {
+  var posts = new Array();
+  if (req.session.twitterCred) {
+    console.log('Making an API call');
+    getTweets(req.session.twitterCred, (posts) => {
       res.render('post/posts', {term: null, posts: posts});
     });
   }
-}
-
-function getMongoClient(callback) {
-  var MongoClient = require('mongodb').MongoClient;
-
-  var uri = 'mongodb+srv://swainstoncory89:' + process.env.MONGO_PASS + '@sosh-mede-u9ng4.mongodb.net/sosh-mede';
-  MongoClient.connect(uri, callback);
+  if (req.session.fbCred) {
+    var fb = FB.extend({appId: process.env.FB_APP_ID, appSecret: process.env.FB_APP_SECRET});
+    fb.setAccessToken(req.session.fbCred.token);
+    fb.api('me/feed', {fields: ['message', 'created_time', 'from{name,picture.type(normal)}', 'full_picture', 'story']}, fbRes => {
+      if (fbRes.error) {
+        console.error(fbRes.error);
+        return;
+      }
+      var posts = new Array();
+      var fbPosts = fbRes.data;
+      for (var i = 0; i < fbPosts.length; i++) {
+        posts.push({
+          text: fbPosts[i].message,
+          userName: fbPosts[i].from.name,
+          userHandle: null,
+          story: fbPosts[i].story,
+          userPic: fbPosts[i].from.picture.data.url,
+          date: fbPosts[i].created_time,
+          url: 'https://www.facebook.com',
+          icon: 'images/fb-icon.png',
+          sharedPost: null,
+          photo: fbPosts[i].full_picture ? fbPosts[i].full_picture : null,
+          video: fbPosts[i].source ? fbPosts[i].source : null
+        });
+      }
+      res.render('post/posts', {term: null, posts: posts});
+    });
+  }
 }

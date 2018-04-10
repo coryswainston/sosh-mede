@@ -3,11 +3,6 @@ var idx = 0;
 window.onload = function() {
   var mainFeed = document.getElementById('main-feed');
   loadPosts(mainFeed);
-  window.onscroll = function() {
-    if ((window.innerHeight + window.pageYOffset) >= document.body.offsetHeight) {
-      loadPosts(mainFeed);
-    }
-  };
 
   var searchForm = document.getElementById('search-form');
   searchForm.onsubmit = function(event) {
@@ -72,7 +67,7 @@ function loadPosts(div) {
     }
     window.onscroll = null;
   };
-  request.open('GET', '/posts?idx=' + idx, true);
+  request.open('GET', '/posts?idx=' + idx, false);
   request.send();
   idx += 10;
 }
