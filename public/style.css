@@ -87,8 +87,8 @@ a {
   color: inherit;
 }
 
-.login-main {
-  font-size: 2em;
+#login-main {
+  font-size: 3em;
 }
 
 small {

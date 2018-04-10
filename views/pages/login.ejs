@@ -10,12 +10,17 @@
   </head>
   <body>
     <header>
-      <h1>The Sosh Mede</h1>
+      <div id="header-wrapper">
+        <h1>The Sosh Mede</h1>
+      </div>
     </header>
     <main>
       <p id="login-main">Take your pick.</p>
-      <br><br>
-      <a class="post-link" href="/twitter/auth">Sign in with Twitter</a><br />
-      <a class="post-link" href="/fb/auth">Sign in with Facebook</a>
+      <br>
+      <img class="small-image" src="images/twitter-icon.png" /><a class="post-link" href="/twitter/auth">Sign in with Twitter</a><br />
+      <img class="small-image" src="images/fb-icon.png" /><a class="post-link" href="/fb/auth">Sign in with Facebook</a>
+      <br>
+      <br>
+      <br>
     </main>
 <%- include('../modules/footer'); %>
